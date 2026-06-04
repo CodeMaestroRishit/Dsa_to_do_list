@@ -145,3 +145,15 @@ values
   ('11111111-1111-1111-1111-111111111111', 'Arrays & Hashing', '{}'::text[], '{"Strings", "Linked Lists", "Trees", "Graphs", "DP"}'::text[], 0),
   ('22222222-2222-2222-2222-222222222222', 'Arrays & Hashing', '{}'::text[], '{"Strings", "Linked Lists", "Trees", "Graphs", "DP"}'::text[], 0)
 on conflict (user_id) do nothing;
+
+-- DISABLE ROW LEVEL SECURITY (RLS) FOR ALL TABLES
+-- This ensures that anonymous frontend client calls are not blocked by default RLS policies.
+alter table public.profiles disable row level security;
+alter table public.tasks disable row level security;
+alter table public.task_completions disable row level security;
+alter table public.dsa_sessions disable row level security;
+alter table public.placement_progress disable row level security;
+alter table public.streaks disable row level security;
+alter table public.penalties disable row level security;
+alter table public.activities disable row level security;
+alter table public.weekly_reports disable row level security;

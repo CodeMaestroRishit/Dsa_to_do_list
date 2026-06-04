@@ -620,6 +620,25 @@ export const dbService = {
       try {
         const { data, error } = await supabase.from('tasks').select('*').eq('date', date);
         if (error) throw error;
+        
+        // Auto-seed default daily tasks in Supabase if none exist for today yet
+        if ((!data || data.length === 0) && date === getLocalDateString()) {
+          const todayTasks = getMockTasks(date);
+          const tasksToInsert = todayTasks.map(t => ({
+            title: t.title,
+            start_time: t.start_time,
+            end_time: t.end_time,
+            category: t.category,
+            date: t.date,
+            assign_to: t.assign_to,
+            created_by: '11111111-1111-1111-1111-111111111111'
+          }));
+          const { data: inserted, error: insertErr } = await supabase.from('tasks').insert(tasksToInsert).select();
+          if (!insertErr && inserted) {
+            return inserted;
+          }
+        }
+        
         return data || [];
       } catch (err) {
         console.warn("Supabase tasks query failed, falling back to LocalStorage:", err);

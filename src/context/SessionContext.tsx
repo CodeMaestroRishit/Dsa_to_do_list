@@ -29,7 +29,17 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const init = async () => {
       try {
-        const isSb = dbService.isSupabase();
+        let isSb = dbService.isSupabase();
+        if (isSb) {
+          try {
+            // Verify Supabase connection and table access (checking if RLS or schema is broken)
+            const { error } = await (dbService as any).supabase.from('profiles').select('id').limit(1);
+            if (error) throw error;
+          } catch (err) {
+            console.warn("Supabase connection check failed. Falling back to LocalStorage:", err);
+            isSb = false;
+          }
+        }
         setDbMode(isSb ? 'supabase' : 'local');
         
         const fetchedProfiles = await dbService.getProfiles();
@@ -67,6 +77,29 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       window.removeEventListener('db-update', handleDbUpdate);
     };
   }, []);
+
+  // Listen to remote changes in Supabase and trigger automatic real-time updates
+  useEffect(() => {
+    if (dbMode === 'supabase' && dbService.isSupabase()) {
+      const sbClient = (dbService as any).supabase;
+      if (sbClient) {
+        const channel = sbClient
+          .channel('schema-db-changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public' },
+            () => {
+              triggerRefresh();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          sbClient.removeChannel(channel);
+        };
+      }
+    }
+  }, [dbMode]);
 
   const setActiveUserById = (id: string) => {
     const matched = profiles.find(p => p.id === id);
