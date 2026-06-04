@@ -590,6 +590,7 @@ if (typeof window !== 'undefined') {
 
 // MAIN EXPORTED SERVICE WITH TRY-CATCH FALLBACKS
 export const dbService = {
+  supabase,
   isSupabase() {
     return !!supabase;
   },

@@ -47,7 +47,7 @@ export default function TrackerPage() {
   const [hardOffset, setHardOffset] = useState(0);
 
   useEffect(() => {
-    if (activeUser && !viewUserTab) {
+    if (activeUser) {
       setViewUserTab(activeUser.id);
     }
   }, [activeUser]);

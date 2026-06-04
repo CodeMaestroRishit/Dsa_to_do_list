@@ -42,14 +42,20 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
       targetDate.setDate(today.getDate() - i);
       const dateStr = getLocalDateString(targetDate);
       
+      // Helper to handle both short (YYYY-MM-DD) and full timestamp formats from databases
+      const isSameDayStr = (dateVal: string | undefined | null, targetStr: string) => {
+        if (!dateVal) return false;
+        return dateVal.substring(0, 10) === targetStr;
+      };
+      
       // Calculate level of contribution: tasks completed + LeetCode questions solved
-      const dayTasks = tasks.filter(t => t.date === dateStr && (t.assign_to === 'both' || t.assign_to === username));
+      const dayTasks = tasks.filter(t => isSameDayStr(t.date, dateStr) && (t.assign_to === 'both' || t.assign_to === username));
       const dayCompletions = completions.filter(c => {
         const taskObj = tasks.find(t => t.id === c.task_id);
-        return taskObj?.date === dateStr && c.user_id === userId && c.completed;
+        return taskObj && isSameDayStr(taskObj.date, dateStr) && c.user_id === userId && c.completed;
       });
       
-      const daySessions = sessions.filter(s => s.date === dateStr);
+      const daySessions = sessions.filter(s => isSameDayStr(s.date, dateStr) && s.user_id === userId);
       const questionsCount = daySessions.reduce((sum, s) => sum + s.questions_count, 0);
 
       const tasksCompletedCount = dayCompletions.length;

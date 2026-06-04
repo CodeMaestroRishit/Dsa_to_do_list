@@ -28,7 +28,7 @@ export default function JournalPage() {
   const [date, setDate] = useState(getLocalDateString());
 
   useEffect(() => {
-    if (activeUser && !viewUserTab) {
+    if (activeUser) {
       setViewUserTab(activeUser.id);
     }
   }, [activeUser]);
@@ -52,7 +52,7 @@ export default function JournalPage() {
 
   const handleLogSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeUser || !topic.trim()) return;
+    if (!activeUser || !viewUserTab || !topic.trim()) return;
 
     const titlesArray = leetcodeTitles
       .split(',')
@@ -63,7 +63,7 @@ export default function JournalPage() {
 
     try {
       await dbService.addDSASession({
-        user_id: activeUser.id,
+        user_id: viewUserTab,
         topic: topic.trim(),
         questions_count: questionsCount,
         leetcode_questions: titlesArray,
@@ -165,7 +165,7 @@ export default function JournalPage() {
         <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 glass-panel">
           <h2 className="font-orbitron font-black text-sm tracking-wider text-white mb-4 flex items-center gap-1.5">
             <BookOpen size={16} className={colorAccent === 'yellow' ? 'text-neon-yellow' : 'text-neon-blue'} />
-            RECORD DSA SESSION (GRINDING AS {activeUser?.display_name.toUpperCase()})
+            RECORD DSA SESSION FOR {selectedProfile?.display_name.toUpperCase()}
           </h2>
 
           <form onSubmit={handleLogSession} className="grid grid-cols-1 md:grid-cols-2 gap-4">
