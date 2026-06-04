@@ -1,26 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-neon-yellow: #dffe00;
+  --color-neon-blue: #00f0ff;
+  --color-neon-red: #ff3b30;
+  --color-neon-green: #34c759;
+  
+  --color-dark-bg: #000000;
+  --color-dark-card: rgba(13, 13, 13, 0.7);
+  --color-dark-border: rgba(255, 255, 255, 0.08);
+
+  --font-orbitron: "Orbitron", sans-serif;
+  --font-inter: "Inter", sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter);
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: rgba(15, 15, 15, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-card {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* User Specific Glowing Cards */
+.glass-card-rohit {
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(223, 254, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-rohit:hover {
+  border-color: rgba(223, 254, 0, 0.4);
+  box-shadow: 0 0 20px -5px rgba(223, 254, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.glass-card-rishit {
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-rishit:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 20px -5px rgba(0, 240, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Text & Box Neon Glows */
+.text-glow-yellow {
+  text-shadow: 0 0 10px rgba(223, 254, 0, 0.6), 0 0 20px rgba(223, 254, 0, 0.2);
+}
+
+.text-glow-blue {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 10px rgba(52, 199, 89, 0.6);
+}
+
+.text-glow-red {
+  text-shadow: 0 0 10px rgba(255, 59, 48, 0.6);
+}
+
+.glow-shadow-yellow {
+  box-shadow: 0 0 15px 0px rgba(223, 254, 0, 0.3);
+}
+
+.glow-shadow-blue {
+  box-shadow: 0 0 15px 0px rgba(0, 240, 255, 0.3);
+}
+
+.glow-border-yellow {
+  border-color: rgba(223, 254, 0, 0.5);
+}
+
+.glow-border-blue {
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Hide Scrollbar helper */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Active Session Glow Animations */
+@keyframes pulse-yellow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(223, 254, 0, 0.2);
+    border-color: rgba(223, 254, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(223, 254, 0, 0.5);
+    border-color: rgba(223, 254, 0, 0.7);
+  }
+}
+
+@keyframes pulse-blue {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    border-color: rgba(0, 240, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+    border-color: rgba(0, 240, 255, 0.7);
+  }
+}
+
+.animate-glow-rohit {
+  animation: pulse-yellow 2s infinite ease-in-out;
+}
+
+.animate-glow-rishit {
+  animation: pulse-blue 2s infinite ease-in-out;
+}
+
+/* Glowing Checkbox Styles */
+.glow-checkbox-rohit:checked {
+  background-color: #dffe00;
+  border-color: #dffe00;
+  box-shadow: 0 0 10px rgba(223, 254, 0, 0.8);
+}
+.glow-checkbox-rishit:checked {
+  background-color: #00f0ff;
+  border-color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
 }
