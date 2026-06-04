@@ -117,11 +117,10 @@ export default function TrackerPage() {
     }
   };
 
-  // Quick reset standard checklist structure
   const handleLoadStandardChecklist = () => {
     if (!confirm('This will reorganize your completed/upcoming topics. Proceed?')) return;
-    setTopicsCompleted(['Arrays & Hashing']);
-    setUpcomingTopics(STANDARD_TOPICS.filter(t => t !== 'Arrays & Hashing'));
+    setTopicsCompleted([]);
+    setUpcomingTopics(STANDARD_TOPICS);
   };
 
   const selectedProfile = profiles.find((p) => p.id === viewUserTab);
@@ -286,9 +285,9 @@ export default function TrackerPage() {
             </h3>
             <button
               onClick={handleLoadStandardChecklist}
-              className="text-[9px] font-mono font-bold text-white/30 hover:text-white border border-white/5 bg-white/5 px-2 py-1 rounded"
+              className="text-[9px] font-mono font-bold text-white/30 hover:text-white border border-white/5 bg-white/5 px-2 py-1 rounded select-none cursor-pointer"
             >
-              RESET TO NEST CHECKLIST
+              RESET TO STANDARD SYLLABUS
             </button>
           </div>
 

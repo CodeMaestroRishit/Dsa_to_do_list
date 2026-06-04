@@ -142,8 +142,8 @@ on conflict (user_id) do nothing;
 -- Seed Initial Placement Tracker
 insert into public.placement_progress (user_id, current_topic, topics_completed, upcoming_topics, interview_prep_progress)
 values
-  ('11111111-1111-1111-1111-111111111111', 'Arrays & Hashing', '{}'::text[], '{"Strings", "Linked Lists", "Trees", "Graphs", "DP"}'::text[], 0),
-  ('22222222-2222-2222-2222-222222222222', 'Arrays & Hashing', '{}'::text[], '{"Strings", "Linked Lists", "Trees", "Graphs", "DP"}'::text[], 0)
+  ('11111111-1111-1111-1111-111111111111', 'Arrays & Hashing', '{}'::text[], '{"Arrays & Hashing", "Two Pointers", "Sliding Window", "Stack", "Binary Search", "Linked List", "Trees", "Tries", "Heaps / Priority Queue", "Backtracking", "Graphs", "Advanced Graphs", "1-D Dynamic Programming", "2-D Dynamic Programming", "Greedy Algorithms", "Intervals", "Bit Manipulation", "Math & Geometry", "System Design", "Object Oriented Programming", "SQL & Databases"}'::text[], 0),
+  ('22222222-2222-2222-2222-222222222222', 'Arrays & Hashing', '{}'::text[], '{"Arrays & Hashing", "Two Pointers", "Sliding Window", "Stack", "Binary Search", "Linked List", "Trees", "Tries", "Heaps / Priority Queue", "Backtracking", "Graphs", "Advanced Graphs", "1-D Dynamic Programming", "2-D Dynamic Programming", "Greedy Algorithms", "Intervals", "Bit Manipulation", "Math & Geometry", "System Design", "Object Oriented Programming", "SQL & Databases"}'::text[], 0)
 on conflict (user_id) do nothing;
 
 -- DISABLE ROW LEVEL SECURITY (RLS) FOR ALL TABLES
