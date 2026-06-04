@@ -327,6 +327,22 @@ class LocalStorageDriver {
     return newSession;
   }
 
+  async deleteDSASession(id: string): Promise<void> {
+    const all = this.get<DSASession[]>(KEYS.DSA_SESSIONS, []);
+    const session = all.find(s => s.id === id);
+    if (session) {
+      const progress = this.get<Record<string, PlacementProgress>>(KEYS.PROGRESS, MOCK_PROGRESS);
+      if (progress[session.user_id]) {
+        progress[session.user_id].leetcode_easy_offset = Math.max(0, progress[session.user_id].leetcode_easy_offset - session.difficulty_easy);
+        progress[session.user_id].leetcode_medium_offset = Math.max(0, progress[session.user_id].leetcode_medium_offset - session.difficulty_medium);
+        progress[session.user_id].leetcode_hard_offset = Math.max(0, progress[session.user_id].leetcode_hard_offset - session.difficulty_hard);
+        this.set(KEYS.PROGRESS, progress);
+      }
+      const filtered = all.filter(s => s.id !== id);
+      this.set(KEYS.DSA_SESSIONS, filtered);
+    }
+  }
+
   // Placement Progress
   async getPlacementProgress(userId: string): Promise<PlacementProgress> {
     const progress = this.get<Record<string, PlacementProgress>>(KEYS.PROGRESS, MOCK_PROGRESS);
@@ -799,6 +815,33 @@ export const dbService = {
       }
     }
     return localDriver.addDSASession(session);
+  },
+
+  async deleteDSASession(id: string): Promise<void> {
+    if (supabase) {
+      try {
+        const { data: session, error: fetchErr } = await supabase.from('dsa_sessions').select('*').eq('id', id).single();
+        if (fetchErr) throw fetchErr;
+
+        if (session) {
+          const { error: deleteErr } = await supabase.from('dsa_sessions').delete().eq('id', id);
+          if (deleteErr) throw deleteErr;
+
+          const { data: currentProg } = await supabase.from('placement_progress').select('*').eq('user_id', session.user_id).single();
+          if (currentProg) {
+            await supabase.from('placement_progress').update({
+              leetcode_easy_offset: Math.max(0, currentProg.leetcode_easy_offset - session.difficulty_easy),
+              leetcode_medium_offset: Math.max(0, currentProg.leetcode_medium_offset - session.difficulty_medium),
+              leetcode_hard_offset: Math.max(0, currentProg.leetcode_hard_offset - session.difficulty_hard),
+            }).eq('user_id', session.user_id);
+          }
+        }
+        return;
+      } catch (err) {
+        console.warn("Supabase delete DSA session failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.deleteDSASession(id);
   },
 
   // Placement Progress

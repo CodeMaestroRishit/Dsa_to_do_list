@@ -5,7 +5,7 @@ import { useSession } from '@/context/SessionContext';
 import { dbService, getLocalDateString } from '@/lib/db';
 import { DSASession } from '@/lib/types';
 import { DifficultyBreakdown, TopicStats, WeeklyGraph } from '@/components/StatsCharts';
-import { Plus, BookOpen, Clock, Calendar, CheckSquare, BarChart3, AlertCircle } from 'lucide-react';
+import { Plus, BookOpen, Clock, Calendar, CheckSquare, BarChart3, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function JournalPage() {
   const { activeUser, refreshKey, triggerRefresh, profiles } = useSession();
@@ -88,6 +88,16 @@ export default function JournalPage() {
       triggerRefresh();
     } catch (err) {
       console.error('Error logging DSA session:', err);
+    }
+  };
+
+  const handleDeleteSession = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this journal entry?')) return;
+    try {
+      await dbService.deleteDSASession(id);
+      triggerRefresh();
+    } catch (err) {
+      console.error('Error deleting DSA session:', err);
     }
   };
 
@@ -356,6 +366,15 @@ export default function JournalPage() {
                       <Calendar size={11} />
                       <span>{session.date}</span>
                     </div>
+                    {activeUser && activeUser.id === session.user_id && (
+                      <button
+                        onClick={() => handleDeleteSession(session.id)}
+                        className="p-1 rounded hover:bg-white/10 text-white/30 hover:text-neon-red transition-all cursor-pointer"
+                        title="Delete journal session"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                   </div>
                 </div>
 
