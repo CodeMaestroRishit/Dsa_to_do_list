@@ -47,13 +47,49 @@ export const LeetcodeStats: React.FC<LeetcodeStatsProps> = ({ userId, localStats
       if (json.status === 'success') {
         setData(json);
       } else {
-        setError(json.message || 'User not found');
+        throw new Error(json.message || 'Primary API did not return success');
+      }
+    } catch (primaryErr) {
+      console.warn('Primary LeetCode API failed, trying fallback API:', primaryErr);
+      try {
+        // Fetch profile details (for ranking)
+        const profileRes = await fetch(`https://alfa-leetcode-api.onrender.com/${user}`);
+        if (!profileRes.ok) throw new Error('Fallback profile fetch failed');
+        const profileJson = await profileRes.json();
+
+        // Fetch solved counts
+        const solvedRes = await fetch(`https://alfa-leetcode-api.onrender.com/${user}/solved`);
+        if (!solvedRes.ok) throw new Error('Fallback solved fetch failed');
+        const solvedJson = await solvedRes.json();
+
+        // Calculate acceptance rate from submissions
+        let acceptanceRate = 0;
+        interface SubmissionItem {
+          difficulty: string;
+          count: number;
+          submissions: number;
+        }
+        const totalSub = solvedJson.totalSubmissionNum?.find((s: SubmissionItem) => s.difficulty === 'All')?.submissions || 0;
+        const acSub = solvedJson.acSubmissionNum?.find((s: SubmissionItem) => s.difficulty === 'All')?.submissions || 0;
+        if (totalSub > 0) {
+          acceptanceRate = Number(((acSub / totalSub) * 100).toFixed(2));
+        }
+
+        setData({
+          status: 'success',
+          message: 'Success',
+          totalSolved: solvedJson.solvedProblem || 0,
+          easySolved: solvedJson.easySolved || 0,
+          mediumSolved: solvedJson.mediumSolved || 0,
+          hardSolved: solvedJson.hardSolved || 0,
+          acceptanceRate: acceptanceRate,
+          ranking: profileJson.ranking || 0
+        });
+      } catch (fallbackErr) {
+        console.error('All LeetCode API requests failed:', fallbackErr);
+        setError('API connection failed. Showing offline data.');
         setData(null);
       }
-    } catch (err) {
-      console.error(err);
-      setError('API connection failed. Showing offline data.');
-      setData(null);
     } finally {
       setLoading(false);
     }
