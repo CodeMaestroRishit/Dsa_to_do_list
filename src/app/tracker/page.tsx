@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from '@/context/SessionContext';
 import { dbService } from '@/lib/db';
 import { PlacementProgress } from '@/lib/types';
@@ -52,15 +52,11 @@ export default function TrackerPage() {
     }
   }, [activeUser]);
 
-  useEffect(() => {
-    fetchTrackerData();
-  }, [refreshKey, viewUserTab]);
-
-  const fetchTrackerData = async () => {
+  const fetchTrackerData = useCallback(async () => {
     if (!viewUserTab) return;
     try {
       setLoading(true);
-      const data = await dbService.getPlacementProgress(viewUserTab);
+      const data: PlacementProgress = await dbService.getPlacementProgress(viewUserTab);
       setCurrentTopic(data.current_topic || 'Arrays & Hashing');
       setTopicsCompleted(data.topics_completed || []);
       setUpcomingTopics(data.upcoming_topics || []);
@@ -73,7 +69,11 @@ export default function TrackerPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [viewUserTab]);
+
+  useEffect(() => {
+    fetchTrackerData();
+  }, [refreshKey, fetchTrackerData]);
 
   const handleToggleTopic = (topicName: string) => {
     // If completed, move to upcoming. If upcoming, move to completed.
@@ -124,57 +124,38 @@ export default function TrackerPage() {
   };
 
   const selectedProfile = profiles.find((p) => p.id === viewUserTab);
-  const colorAccent = selectedProfile?.color_accent || 'yellow';
+  const colorAccent = selectedProfile?.color_accent || 'blue';
   const isYellow = colorAccent === 'yellow';
 
   if (loading && !saving) {
     return (
-      <div className="flex-grow flex flex-col items-center justify-center bg-black">
-        <div className="w-10 h-10 border-2 border-t-neon-yellow border-white/5 rounded-full animate-spin" />
+      <div className="flex-grow flex flex-col items-center justify-center bg-transparent min-h-[400px]">
+        <div className="w-12 h-12 border-4 border-black border-t-neo-blue rounded-full animate-spin shadow-[4px_4px_0px_#000000]" />
+        <span className="mt-4 font-orbitron font-bold text-xs text-black uppercase tracking-wider">SYNCING PLACEMENT METRICS...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex-grow bg-black px-4 py-8 max-w-5xl mx-auto w-full flex flex-col gap-6">
+    <div className="flex-grow bg-transparent px-4 py-8 max-w-5xl mx-auto w-full flex flex-col gap-6 relative z-10 text-black">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-white/5 pb-4 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b-4 border-black pb-4 gap-4">
         <div>
-          <h1 className="font-orbitron font-black text-xl md:text-2xl tracking-wider text-white">
-            PLACEMENT TRACKER BOARD
+          <h1 className="font-orbitron font-black text-2xl tracking-wider text-black flex items-center gap-2">
+            <Award className="text-black animate-pulse" size={24} />
+            <span>PLACEMENT TRACKER BOARD</span>
           </h1>
-          <p className="text-xs font-bold text-white/40 uppercase tracking-widest mt-0.5">
+          <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-1">
             Monitor total LeetCode solves and structure your preparation map
           </p>
         </div>
 
         <div className="flex gap-3">
-          {/* User toggle */}
-          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
-            {profiles.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setViewUserTab(p.id)}
-                className={`px-3 py-1 rounded text-xs font-bold font-orbitron uppercase tracking-wider transition-all ${
-                  viewUserTab === p.id
-                    ? p.color_accent === 'yellow'
-                      ? 'bg-neon-yellow text-black font-black'
-                      : 'bg-neon-blue text-black font-black'
-                    : 'text-white/40 hover:text-white'
-                }`}
-              >
-                {p.display_name}
-              </button>
-            ))}
-          </div>
-
           <button
             onClick={handleSaveProgress}
             disabled={saving}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-black font-bold text-xs font-orbitron uppercase tracking-wide transition-all select-none hover:opacity-95 ${
-              isYellow ? 'bg-neon-yellow shadow-[0_0_8px_#dffe00]' : 'bg-neon-blue shadow-[0_0_8px_#00f0ff]'
-            }`}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 border-black bg-neo-green text-black font-bold text-xs font-orbitron uppercase tracking-wide hover:bg-neo-green/80 transition-all shadow-[3px_3px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none select-none cursor-pointer disabled:opacity-50"
           >
             {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
             <span>{saving ? 'Saving...' : 'Save Tracker'}</span>
@@ -186,60 +167,69 @@ export default function TrackerPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         
         {/* Core Stats Panel (Column 1) */}
-        <div className="md:col-span-1 bg-[#050505] border border-white/5 p-5 rounded-xl glass-card flex flex-col gap-4">
-          <h3 className="font-orbitron font-bold text-xs uppercase text-white/60 tracking-wider flex items-center gap-2">
-            <Award size={14} className={isYellow ? 'text-neon-yellow' : 'text-neon-blue'} />
-            LEETCODE SOLVES OVERRIDE
+        <div className="md:col-span-1 bg-white border-[3px] border-black p-5 rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-4 text-black">
+          <h3 className="font-orbitron font-black text-xs uppercase text-black tracking-wider flex items-center gap-2 border-b-2 border-black pb-2">
+            <Award size={16} className="text-black" />
+            SOLVES OVERRIDE
           </h3>
-          <p className="text-[10px] text-white/40 font-semibold leading-relaxed uppercase">
+          <p className="text-[10px] text-black/60 font-bold leading-relaxed uppercase">
             Include Leetcode solved counts before using this tracker app.
           </p>
 
           {/* Easy count input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Easy solved</label>
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider flex justify-between">
+              <span>Easy solved</span>
+              <span className="px-1.5 py-0.5 text-[9px] bg-[#7ccd95] border border-black rounded text-black font-extrabold font-mono">EASY</span>
+            </label>
             <input
               type="number"
               min={0}
               value={easyOffset}
               onChange={(e) => setEasyOffset(Math.max(0, parseInt(e.target.value) || 0))}
-              className="bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500/50"
+              className="bg-white border-2 border-black rounded-xl px-3 py-2 text-sm text-black font-mono font-bold focus:outline-none focus:bg-neo-green focus:ring-0 shadow-[2px_2px_0px_#000000] transition-all"
             />
           </div>
 
           {/* Medium count input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Medium solved</label>
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider flex justify-between">
+              <span>Medium solved</span>
+              <span className="px-1.5 py-0.5 text-[9px] bg-[#fdf2a9] border border-black rounded text-black font-extrabold font-mono">MEDIUM</span>
+            </label>
             <input
               type="number"
               min={0}
               value={mediumOffset}
               onChange={(e) => setMediumOffset(Math.max(0, parseInt(e.target.value) || 0))}
-              className="bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-amber-500/50"
+              className="bg-white border-2 border-black rounded-xl px-3 py-2 text-sm text-black font-mono font-bold focus:outline-none focus:bg-neo-yellow focus:ring-0 shadow-[2px_2px_0px_#000000] transition-all"
             />
           </div>
 
           {/* Hard count input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[9px] font-bold text-rose-400 uppercase tracking-wider">Hard solved</label>
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider flex justify-between">
+              <span>Hard solved</span>
+              <span className="px-1.5 py-0.5 text-[9px] bg-[#ffb7b2] border border-black rounded text-black font-extrabold font-mono">HARD</span>
+            </label>
             <input
               type="number"
               min={0}
               value={hardOffset}
               onChange={(e) => setHardOffset(Math.max(0, parseInt(e.target.value) || 0))}
-              className="bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-rose-500/50"
+              className="bg-white border-2 border-black rounded-xl px-3 py-2 text-sm text-black font-mono font-bold focus:outline-none focus:bg-neo-peach focus:ring-0 shadow-[2px_2px_0px_#000000] transition-all"
             />
           </div>
 
           {/* Current Focus Topic */}
           <div className="flex flex-col gap-1.5 mt-2">
-            <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider">Current Focus Topic</label>
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider">Current Focus Topic</label>
             <input
               type="text"
               value={currentTopic}
               onChange={(e) => setCurrentTopic(e.target.value)}
               placeholder="e.g. Graphs, System Design"
-              className="bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+              className="bg-white border-2 border-black rounded-xl px-3 py-2 text-sm text-black font-bold focus:outline-none focus:bg-neo-blue focus:ring-0 shadow-[2px_2px_0px_#000000] transition-all"
             />
           </div>
         </div>
@@ -248,10 +238,10 @@ export default function TrackerPage() {
         <div className="md:col-span-2 flex flex-col gap-6">
           
           {/* Interview Prep Progress Indicator Slider */}
-          <div className="bg-[#050505] border border-white/5 p-5 rounded-xl glass-card flex flex-col gap-4">
-            <div className="flex justify-between items-center text-xs font-bold font-orbitron">
-              <span className="text-white/60 tracking-wider">INTERVIEW PREPARATION READINESS</span>
-              <span className={isYellow ? 'text-neon-yellow text-glow-yellow' : 'text-neon-blue text-glow-blue'}>
+          <div className="bg-white border-[3px] border-black p-5 rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-4 text-black">
+            <div className="flex justify-between items-center text-xs font-black font-orbitron">
+              <span className="text-black tracking-wider">INTERVIEW PREPARATION READINESS</span>
+              <span className={isYellow ? 'text-glow-yellow' : 'text-glow-blue'}>
                 {interviewPrepProgress}%
               </span>
             </div>
@@ -263,14 +253,14 @@ export default function TrackerPage() {
               max={100}
               value={interviewPrepProgress}
               onChange={(e) => setInterviewPrepProgress(parseInt(e.target.value) || 0)}
-              className="w-full cursor-pointer accent-white"
+              className="w-full h-2 bg-neo-gray border-2 border-black rounded-lg appearance-none cursor-pointer accent-black"
             />
             
             {/* Progress Display Bar */}
-            <div className="w-full bg-white/5 h-3 rounded-full overflow-hidden">
+            <div className="w-full bg-neo-gray border-[3px] border-black h-5 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ${
-                  isYellow ? 'bg-neon-yellow shadow-[0_0_8px_#dffe00]' : 'bg-neon-blue shadow-[0_0_8px_#00f0ff]'
+                className={`h-full rounded-full transition-all duration-300 border-r-2 border-black ${
+                  isYellow ? 'bg-neo-yellow' : 'bg-neo-blue'
                 }`}
                 style={{ width: `${interviewPrepProgress}%` }}
               />
@@ -278,42 +268,47 @@ export default function TrackerPage() {
           </div>
 
           {/* Re-load checklist quick action */}
-          <div className="flex justify-between items-center">
-            <h3 className="font-orbitron font-bold text-xs uppercase text-white/50 tracking-wider flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h3 className="font-orbitron font-black text-xs uppercase text-black tracking-wider flex items-center gap-2">
               <Layers size={14} />
               PLACEMENT SYLLABUS TOPICS
             </h3>
             <button
               onClick={handleLoadStandardChecklist}
-              className="text-[9px] font-mono font-bold text-white/30 hover:text-white border border-white/5 bg-white/5 px-2 py-1 rounded select-none cursor-pointer"
+              className="text-[10px] font-bold text-black border-2 border-black bg-neo-peach px-3 py-1.5 rounded-xl shadow-[2px_2px_0px_#000000] hover:translate-y-[-1px] hover:translate-x-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-y-[1px] active:translate-x-[1px] active:shadow-none transition-all cursor-pointer"
             >
               RESET TO STANDARD SYLLABUS
             </button>
           </div>
 
           {/* Lists layout */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             
             {/* Completed Topics Column */}
-            <div className="bg-[#050505] border border-white/5 rounded-xl p-4 flex flex-col gap-3 min-h-[300px]">
-              <h4 className="font-orbitron font-bold text-[11px] text-emerald-400 tracking-wider border-b border-white/5 pb-2 uppercase">
-                Completed Topics ({topicsCompleted.length})
+            <div className="bg-white border-[3px] border-black rounded-2xl p-4 flex flex-col gap-3 min-h-[350px] shadow-[4px_4px_0px_0px_#000000]">
+              <h4 className="font-orbitron font-black text-xs text-[#2e7d32] tracking-wider border-b-2 border-black pb-2 uppercase flex items-center justify-between">
+                <span>Completed Topics</span>
+                <span className="px-2 py-0.5 bg-neo-green border border-black rounded-full font-mono text-[10px] font-extrabold text-black">
+                  {topicsCompleted.length}
+                </span>
               </h4>
               <div className="flex flex-col gap-2 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
                 {topicsCompleted.length === 0 ? (
-                  <div className="text-center py-12 text-[10px] text-white/30 font-semibold uppercase tracking-wider">
-                    No completed topics yet. Keep grinding!
+                  <div className="text-center py-16 text-[11px] text-black/40 font-bold uppercase tracking-wider">
+                    No completed topics yet.<br/>Keep grinding!
                   </div>
                 ) : (
                   topicsCompleted.map((topicName) => (
                     <button
                       key={topicName}
                       onClick={() => handleToggleTopic(topicName)}
-                      className="flex items-center justify-between text-left px-3 py-2 rounded-lg bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold transition-all group"
+                      className="flex items-center justify-between text-left px-3 py-2.5 rounded-xl bg-neo-green/20 hover:bg-neo-green/40 border-2 border-black text-xs font-bold text-black shadow-[2px_2px_0px_#000000] hover:translate-y-[-1px] hover:translate-x-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-y-[1px] active:translate-x-[1px] active:shadow-none transition-all cursor-pointer group"
                     >
-                      <span className="text-white/80">{topicName}</span>
-                      <CheckCircle2 size={13} className="text-emerald-400 group-hover:hidden" />
-                      <ArrowRight size={13} className="text-white/30 hidden group-hover:block" />
+                      <span>{topicName}</span>
+                      <div className="flex items-center">
+                        <CheckCircle2 size={14} className="text-black group-hover:hidden" />
+                        <ArrowRight size={14} className="text-black hidden group-hover:block" />
+                      </div>
                     </button>
                   ))
                 )}
@@ -321,25 +316,30 @@ export default function TrackerPage() {
             </div>
 
             {/* Upcoming / Target Topics Column */}
-            <div className="bg-[#050505] border border-white/5 rounded-xl p-4 flex flex-col gap-3 min-h-[300px]">
-              <h4 className="font-orbitron font-bold text-[11px] text-white/50 tracking-wider border-b border-white/5 pb-2 uppercase">
-                Upcoming Targets ({upcomingTopics.length})
+            <div className="bg-white border-[3px] border-black rounded-2xl p-4 flex flex-col gap-3 min-h-[350px] shadow-[4px_4px_0px_0px_#000000]">
+              <h4 className="font-orbitron font-black text-xs text-black/60 tracking-wider border-b-2 border-black pb-2 uppercase flex items-center justify-between">
+                <span>Upcoming Targets</span>
+                <span className="px-2 py-0.5 bg-neo-gray border border-black rounded-full font-mono text-[10px] font-extrabold text-black">
+                  {upcomingTopics.length}
+                </span>
               </h4>
               <div className="flex flex-col gap-2 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
                 {upcomingTopics.length === 0 ? (
-                  <div className="text-center py-12 text-[10px] text-white/30 font-semibold uppercase tracking-wider">
-                    All topics completed! Ready for interview protocol.
+                  <div className="text-center py-16 text-[11px] text-black/40 font-bold uppercase tracking-wider">
+                    All topics completed!<br/>Ready for interview protocol.
                   </div>
                 ) : (
                   upcomingTopics.map((topicName) => (
                     <button
                       key={topicName}
                       onClick={() => handleToggleTopic(topicName)}
-                      className="flex items-center justify-between text-left px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-semibold transition-all group"
+                      className="flex items-center justify-between text-left px-3 py-2.5 rounded-xl bg-white hover:bg-neo-blue/20 border-2 border-black text-xs font-bold text-black shadow-[2px_2px_0px_#000000] hover:translate-y-[-1px] hover:translate-x-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-y-[1px] active:translate-x-[1px] active:shadow-none transition-all cursor-pointer group"
                     >
-                      <span className="text-white/70">{topicName}</span>
-                      <Circle size={13} className="text-white/20 group-hover:hidden" />
-                      <CheckCircle2 size={13} className="text-emerald-400 hidden group-hover:block" />
+                      <span>{topicName}</span>
+                      <div className="flex items-center">
+                        <Circle size={14} className="text-black/30 group-hover:hidden" />
+                        <CheckCircle2 size={14} className="text-black hidden group-hover:block" />
+                      </div>
                     </button>
                   ))
                 )}

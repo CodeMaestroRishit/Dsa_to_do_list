@@ -2,13 +2,6 @@ import { Profile, Task, TaskCategory, DSASession, PlacementProgress, Streak, Pen
 
 export const MOCK_PROFILES: Profile[] = [
   {
-    id: '11111111-1111-1111-1111-111111111111',
-    username: 'rohit',
-    display_name: 'Rohit',
-    avatar_url: null,
-    color_accent: 'yellow',
-  },
-  {
     id: '22222222-2222-2222-2222-222222222222',
     username: 'rishit',
     display_name: 'Rishit',
@@ -36,48 +29,31 @@ export const getMockTasks = (dateStr: string): Task[] => {
     end_time: t.end_time,
     category: t.category,
     date: dateStr,
-    assign_to: 'both',
+    assign_to: 'rishit',
     created_at: new Date().toISOString(),
   }));
 };
 
 export const MOCK_STREAKS: Record<string, Streak> = {
-  '11111111-1111-1111-1111-111111111111': {
-    user_id: '11111111-1111-1111-1111-111111111111',
-    current_streak: 0,
-    longest_streak: 0,
-    weekly_consistency: 0,
-    last_active_date: null,
-  },
   '22222222-2222-2222-2222-222222222222': {
     user_id: '22222222-2222-2222-2222-222222222222',
-    current_streak: 0,
-    longest_streak: 0,
-    weekly_consistency: 0,
+    current_streak: 5,
+    longest_streak: 12,
+    weekly_consistency: 85,
     last_active_date: null,
   }
 };
 
 export const MOCK_PROGRESS: Record<string, PlacementProgress> = {
-  '11111111-1111-1111-1111-111111111111': {
-    user_id: '11111111-1111-1111-1111-111111111111',
-    current_topic: 'Arrays & Hashing',
-    topics_completed: [],
-    upcoming_topics: ['Two Pointers', 'Sliding Window', 'Stack', 'Binary Search', 'Linked List', 'Trees', 'Graphs', 'DP'],
-    interview_prep_progress: 0,
-    leetcode_easy_offset: 0,
-    leetcode_medium_offset: 0,
-    leetcode_hard_offset: 0,
-  },
   '22222222-2222-2222-2222-222222222222': {
     user_id: '22222222-2222-2222-2222-222222222222',
     current_topic: 'Arrays & Hashing',
     topics_completed: [],
     upcoming_topics: ['Two Pointers', 'Sliding Window', 'Stack', 'Binary Search', 'Linked List', 'Trees', 'Graphs', 'DP'],
-    interview_prep_progress: 0,
-    leetcode_easy_offset: 0,
-    leetcode_medium_offset: 0,
-    leetcode_hard_offset: 0,
+    interview_prep_progress: 15,
+    leetcode_easy_offset: 24,
+    leetcode_medium_offset: 18,
+    leetcode_hard_offset: 2,
   }
 };
 

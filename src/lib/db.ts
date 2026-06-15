@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { 
-  Profile, Task, TaskCategory, TaskCompletion, DSASession, 
-  PlacementProgress, Streak, Penalty, Activity, WeeklyReport, UserStats 
+  Profile, Task, TaskCompletion, DSASession, 
+  PlacementProgress, Streak, Penalty, Activity, WeeklyReport, UserStats,
+  Goal, WellnessLog
 } from './types';
 import { MOCK_PROFILES, getMockTasks, MOCK_STREAKS, MOCK_PROGRESS, MOCK_DSA_SESSIONS, MOCK_PENALTIES, MOCK_ACTIVITIES } from './mockData';
 
@@ -28,6 +29,8 @@ const KEYS = {
   ACTIVITIES: 'pd_activities',
   WEEKLY_REPORTS: 'pd_weekly_reports',
   LAST_PENALTY_CHECK: 'pd_last_penalty_check',
+  WELLNESS_LOGS: 'pd_wellness_logs',
+  GOALS: 'pd_goals',
 };
 
 // Local Storage Driver Helper
@@ -61,6 +64,8 @@ class LocalStorageDriver {
     this.get(KEYS.DSA_SESSIONS, MOCK_DSA_SESSIONS);
     this.get(KEYS.PENALTIES, MOCK_PENALTIES);
     this.get(KEYS.ACTIVITIES, MOCK_ACTIVITIES);
+    this.get(KEYS.WELLNESS_LOGS, []);
+    this.get(KEYS.GOALS, []);
     
     // Seed tasks only for today, no completions. Completely empty/dynamic starting state!
     const today = new Date();
@@ -474,7 +479,7 @@ class LocalStorageDriver {
     return all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, limit);
   }
 
-  async addActivity(userId: string, activityType: string, description: string, metadata?: any): Promise<Activity> {
+  async addActivity(userId: string, activityType: string, description: string, metadata?: Record<string, unknown> | null): Promise<Activity> {
     const all = this.get<Activity[]>(KEYS.ACTIVITIES, []);
     const newAct: Activity = {
       id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -567,6 +572,64 @@ class LocalStorageDriver {
     
     this.set(KEYS.WEEKLY_REPORTS, reports);
     return report;
+  }
+
+  // Goals
+  getGoals(userId: string): Goal[] {
+    const all = this.get<Goal[]>(KEYS.GOALS, []);
+    return all.filter(g => g.user_id === userId);
+  }
+
+  createGoal(goal: Omit<Goal, 'id' | 'created_at'>): Goal {
+    const all = this.get<Goal[]>(KEYS.GOALS, []);
+    const newGoal: Goal = {
+      ...goal,
+      id: `goal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      created_at: new Date().toISOString()
+    };
+    all.push(newGoal);
+    this.set(KEYS.GOALS, all);
+    return newGoal;
+  }
+
+  updateGoal(id: string, updates: Partial<Goal>): Goal {
+    const all = this.get<Goal[]>(KEYS.GOALS, []);
+    const idx = all.findIndex(g => g.id === id);
+    if (idx === -1) throw new Error('Goal not found');
+    all[idx] = { ...all[idx], ...updates };
+    this.set(KEYS.GOALS, all);
+    return all[idx];
+  }
+
+  deleteGoal(id: string): void {
+    const all = this.get<Goal[]>(KEYS.GOALS, []);
+    const filtered = all.filter(g => g.id !== id);
+    this.set(KEYS.GOALS, filtered);
+  }
+
+  // Wellness Logs
+  getWellnessLogs(userId: string): WellnessLog[] {
+    const all = this.get<WellnessLog[]>(KEYS.WELLNESS_LOGS, []);
+    return all.filter(w => w.user_id === userId);
+  }
+
+  addWellnessLog(log: Omit<WellnessLog, 'id' | 'created_at'>): WellnessLog {
+    const all = this.get<WellnessLog[]>(KEYS.WELLNESS_LOGS, []);
+    const idx = all.findIndex(w => w.user_id === log.user_id && w.date === log.date);
+    
+    const newLogObj: WellnessLog = {
+      ...log,
+      id: idx === -1 ? `wellness-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` : all[idx].id,
+      created_at: idx === -1 ? new Date().toISOString() : all[idx].created_at
+    };
+
+    if (idx === -1) {
+      all.push(newLogObj);
+    } else {
+      all[idx] = newLogObj;
+    }
+    this.set(KEYS.WELLNESS_LOGS, all);
+    return newLogObj;
   }
 
   // Stats compiler
@@ -1001,7 +1064,7 @@ export const dbService = {
     return localDriver.getActivities(limit);
   },
 
-  async addActivity(userId: string, activityType: string, description: string, metadata?: any): Promise<Activity> {
+  async addActivity(userId: string, activityType: string, description: string, metadata?: Record<string, unknown> | null): Promise<Activity> {
     if (supabase) {
       try {
         const { data, error } = await supabase.from('activities')
@@ -1163,7 +1226,7 @@ export const dbService = {
 
               await this.addPenalty({
                 user_id: profile.id,
-                penalty_type: penaltyType as any,
+                penalty_type: penaltyType as PenaltyType,
                 description: `Failed task: "${task.title}" on ${yesterdayStr}`,
                 penalty_value: penaltyVal,
                 status: 'pending',
@@ -1205,7 +1268,7 @@ export const dbService = {
                 }
                 await localDriver.addPenalty({
                   user_id: profile.id,
-                  penalty_type: penaltyType as any,
+                  penalty_type: penaltyType as PenaltyType,
                   description: `Failed task: "${task.title}" on ${yesterdayStr}`,
                   penalty_value: penaltyVal,
                   status: 'pending',
@@ -1258,6 +1321,95 @@ export const dbService = {
       }
     }
     return localDriver.getUserStats(userId, dateStr);
+  },
+
+  // Goals
+  async getGoals(userId: string): Promise<Goal[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('goals').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.warn("Supabase getGoals failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.getGoals(userId);
+  },
+
+  async createGoal(goal: Omit<Goal, 'id' | 'created_at'>): Promise<Goal> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('goals').insert([goal]).select().single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Supabase createGoal failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.createGoal(goal);
+  },
+
+  async updateGoal(id: string, updates: Partial<Goal>): Promise<Goal> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('goals').update(updates).eq('id', id).select().single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn("Supabase updateGoal failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.updateGoal(id, updates);
+  },
+
+  async deleteGoal(id: string): Promise<void> {
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('goals').delete().eq('id', id);
+        if (error) throw error;
+        return;
+      } catch (err) {
+        console.warn("Supabase deleteGoal failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.deleteGoal(id);
+  },
+
+  // Wellness Logs
+  async getWellnessLogs(userId: string): Promise<WellnessLog[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('wellness_logs').select('*').eq('user_id', userId).order('date', { ascending: false });
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.warn("Supabase getWellnessLogs failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.getWellnessLogs(userId);
+  },
+
+  async addWellnessLog(log: Omit<WellnessLog, 'id' | 'created_at'>): Promise<WellnessLog> {
+    if (supabase) {
+      try {
+        const { data: existing } = await supabase.from('wellness_logs').select('id').eq('user_id', log.user_id).eq('date', log.date);
+        let result;
+        if (existing && existing.length > 0) {
+          const { data, error } = await supabase.from('wellness_logs').update(log).eq('id', existing[0].id).select().single();
+          if (error) throw error;
+          result = data;
+        } else {
+          const { data, error } = await supabase.from('wellness_logs').insert([log]).select().single();
+          if (error) throw error;
+          result = data;
+        }
+        return result;
+      } catch (err) {
+        console.warn("Supabase addWellnessLog failed, falling back to LocalStorage:", err);
+      }
+    }
+    return localDriver.addWellnessLog(log);
   }
 };
 

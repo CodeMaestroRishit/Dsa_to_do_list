@@ -92,7 +92,7 @@ export interface Activity {
   user_id: string;
   activity_type: ActivityType;
   description: string;
-  metadata?: any;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -118,3 +118,35 @@ export interface UserStats {
   studyHoursToday: number;
   questionsToday: number;
 }
+
+// Goals Interface
+export interface Goal {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  timeframe: 'current' | 'future';
+  category: 'DSA' | 'Wellness' | 'Career' | 'Personal';
+  status: 'todo' | 'in_progress' | 'completed';
+  target_date?: string | null; // YYYY-MM-DD
+  created_at: string;
+}
+
+// Wellness Log Interface
+export interface WellnessLog {
+  id: string;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  sleep_hours: number;
+  sleep_quality: number; // 1-10
+  water_intake: number; // Liters
+  workout_done: boolean;
+  meditation_minutes: number;
+  mood_rating: number; // 1-10
+  screen_time_hours: number;
+  productivity_score: number; // 1-10
+  distractions: string[]; // e.g. ["Social Media", "YouTube", "Gaming", "Sleep Deprived"]
+  notes?: string | null;
+  created_at?: string;
+}
+

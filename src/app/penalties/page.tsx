@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from '@/context/SessionContext';
 import { dbService } from '@/lib/db';
 import { Penalty } from '@/lib/types';
-import { ShieldAlert, CheckCircle, RefreshCw, XSquare, AlertCircle, Dumbbell, Award, BookOpen } from 'lucide-react';
+import { ShieldAlert, CheckCircle, RefreshCw, AlertCircle, Dumbbell, Award, BookOpen } from 'lucide-react';
 
 export default function PenaltiesPage() {
   const { activeUser, refreshKey, triggerRefresh, profiles } = useSession();
@@ -47,7 +47,7 @@ export default function PenaltiesPage() {
       confetti({
         particleCount: 50,
         spread: 40,
-        colors: activeUser.username === 'rohit' ? ['#dffe00', '#000000'] : ['#00f0ff', '#000000']
+        colors: ['#00f0ff', '#000000']
       });
 
       await dbService.resolvePenalty(id);
@@ -59,8 +59,7 @@ export default function PenaltiesPage() {
     }
   };
 
-  // Compile totals for side-by-side Wall of Shame dashboard
-  const rohitProfile = profiles.find(p => p.username === 'rohit');
+  // Compile totals for Wall of Shame dashboard
   const rishitProfile = profiles.find(p => p.username === 'rishit');
 
   const getPenaltyStats = (userId: string) => {
@@ -70,7 +69,6 @@ export default function PenaltiesPage() {
     return { active, resolved };
   };
 
-  const rohitStats = rohitProfile ? getPenaltyStats(rohitProfile.id) : { active: 0, resolved: 0 };
   const rishitStats = rishitProfile ? getPenaltyStats(rishitProfile.id) : { active: 0, resolved: 0 };
 
   const getPenaltyIcon = (type: string) => {
@@ -87,146 +85,54 @@ export default function PenaltiesPage() {
   };
 
   return (
-    <div className="flex-grow bg-black px-4 py-8 max-w-5xl mx-auto w-full flex flex-col gap-6">
+    <div className="flex-grow bg-transparent px-4 py-8 max-w-5xl mx-auto w-full flex flex-col gap-6 relative z-10 text-black">
       
       {/* Page Header */}
-      <div className="border-b border-white/5 pb-4">
-        <h1 className="font-orbitron font-black text-xl md:text-2xl tracking-wider text-white flex items-center gap-2">
-          <ShieldAlert className="text-neon-red animate-pulse" />
+      <div className="border-b-4 border-black pb-4">
+        <h1 className="font-orbitron font-black text-xl md:text-2xl tracking-wider text-black flex items-center gap-2">
+          <ShieldAlert className="text-red-600 animate-pulse" />
           ACCOUNTABILITY WALL OF SHAME
         </h1>
-        <p className="text-xs font-bold text-white/40 uppercase tracking-widest mt-0.5">
+        <p className="text-xs font-bold text-black/60 uppercase tracking-widest mt-0.5">
           Track missed daily tasks, penalty conditions, and clearance status
         </p>
       </div>
 
-      {/* Comparative Penalty Dashboard */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        {/* Rohit Dashboard */}
-        <div className="bg-[#050505] border border-neon-yellow/10 p-5 rounded-xl glass-card flex justify-between items-center relative overflow-hidden">
+      {/* Rishit Penalty Dashboard */}
+      <section className="w-full">
+        <div className="bg-white border-[3px] border-black p-5 rounded-2xl glass-card flex justify-between items-center relative overflow-hidden shadow-[4px_4px_0px_#000000] text-black">
           <div className="flex flex-col gap-1">
-            <h3 className="font-orbitron font-black text-lg tracking-wider text-neon-yellow text-glow-yellow">ROHIT'S INFRACTIONS</h3>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Penalty clearance board</p>
+            <h3 className="font-orbitron font-black text-lg tracking-wider text-black">RISHIT&apos;S INFRACTIONS</h3>
+            <p className="text-[10px] text-black/60 font-bold uppercase tracking-wider">Penalty clearance board</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 font-bold">
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-black font-orbitron text-neon-red text-glow-red">{rohitStats.active}</span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider">Active</span>
+              <span className="text-2xl font-black font-orbitron text-red-600">{rishitStats.active}</span>
+              <span className="text-[8px] font-bold text-black/55 uppercase tracking-wider">Active</span>
             </div>
-            <div className="flex flex-col items-center border-l border-white/5 pl-4">
-              <span className="text-2xl font-black font-orbitron text-neon-green text-glow-green">{rohitStats.resolved}</span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider">Cleared</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Rishit Dashboard */}
-        <div className="bg-[#050505] border border-neon-blue/10 p-5 rounded-xl glass-card flex justify-between items-center relative overflow-hidden">
-          <div className="flex flex-col gap-1">
-            <h3 className="font-orbitron font-black text-lg tracking-wider text-neon-blue text-glow-blue">RISHIT'S INFRACTIONS</h3>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Penalty clearance board</p>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-black font-orbitron text-neon-red text-glow-red">{rishitStats.active}</span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider">Active</span>
-            </div>
-            <div className="flex flex-col items-center border-l border-white/5 pl-4">
-              <span className="text-2xl font-black font-orbitron text-neon-green text-glow-green">{rishitStats.resolved}</span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider">Cleared</span>
+            <div className="flex flex-col items-center border-l-2 border-black/15 pl-4">
+              <span className="text-2xl font-black font-orbitron text-neo-green">{rishitStats.resolved}</span>
+              <span className="text-[8px] font-bold text-black/55 uppercase tracking-wider">Cleared</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Side-by-side or Tabbed Lists for Rohit & Rishit */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start w-full">
-        {/* Rohit List */}
+      {/* Rishit Infractions List */}
+      <section className="w-full">
         <div className="flex flex-col gap-4">
-          <h3 className="font-orbitron font-bold text-xs uppercase text-neon-yellow/70 tracking-widest border-b border-white/5 pb-2">
-            ROHIT'S INFRACTIONS LIST
+          <h3 className="font-orbitron font-bold text-xs uppercase text-black/70 tracking-widest border-b-2 border-black pb-2">
+            RISHIT&apos;S INFRACTIONS LIST
           </h3>
 
           {loading ? (
-            <div className="text-[11px] font-mono text-white/30 text-center py-6">LOADING PROTOCOL...</div>
-          ) : penalties.filter(p => p.user_id === rohitProfile?.id).length === 0 ? (
-            <div className="text-center py-10 text-[10px] text-white/30 font-semibold uppercase tracking-wider">
-              No recorded penalties for Rohit! Perfect record.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-1.5 custom-scrollbar">
-              {penalties
-                .filter(p => p.user_id === rohitProfile?.id)
-                .map((pen) => {
-                  const isPending = pen.status === 'pending';
-                  return (
-                    <div 
-                      key={pen.id} 
-                      className={`border rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden transition-all ${
-                        isPending 
-                          ? 'bg-neon-red/5 border-neon-red/10' 
-                          : 'bg-white/5 border-white/5 opacity-50'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          {getPenaltyIcon(pen.penalty_type)}
-                          <span className={`text-xs font-bold uppercase tracking-wider ${isPending ? 'text-neon-red' : 'text-white/40'}`}>
-                            {pen.penalty_type.replace('_', ' ').toUpperCase()}
-                          </span>
-                        </div>
-                        <span className="text-[9px] font-mono text-white/30">{pen.date_incurred}</span>
-                      </div>
-
-                      <p className="text-xs font-semibold text-white/90">{pen.description}</p>
-                      
-                      <div className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Required Fine</span>
-                          <span className="text-[11px] font-semibold text-white/70">{pen.penalty_value}</span>
-                        </div>
-
-                        {isPending ? (
-                          <button
-                            onClick={() => handleResolvePenalty(pen.id, pen.user_id)}
-                            disabled={resolvingId === pen.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-neon-red/10 border border-neon-red/25 hover:bg-neon-red/20 text-neon-red text-[10px] font-bold tracking-wider font-orbitron transition-all"
-                          >
-                            {resolvingId === pen.id ? (
-                              <RefreshCw size={11} className="animate-spin" />
-                            ) : (
-                              <CheckCircle size={11} />
-                            )}
-                            <span>RESOLVE</span>
-                          </button>
-                        ) : (
-                          <span className="flex items-center gap-1 text-neon-green text-[10px] font-bold font-orbitron tracking-wider">
-                            <CheckCircle size={11} />
-                            CLEARED
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          )}
-        </div>
-
-        {/* Rishit List */}
-        <div className="flex flex-col gap-4">
-          <h3 className="font-orbitron font-bold text-xs uppercase text-neon-blue/70 tracking-widest border-b border-white/5 pb-2">
-            RISHIT'S INFRACTIONS LIST
-          </h3>
-
-          {loading ? (
-            <div className="text-[11px] font-mono text-white/30 text-center py-6">LOADING PROTOCOL...</div>
+            <div className="text-[11px] font-mono text-black/55 font-bold text-center py-6">LOADING PROTOCOL...</div>
           ) : penalties.filter(p => p.user_id === rishitProfile?.id).length === 0 ? (
-            <div className="text-center py-10 text-[10px] text-white/30 font-semibold uppercase tracking-wider">
+            <div className="text-center py-10 text-[10px] text-black/50 font-bold uppercase tracking-wider">
               No recorded penalties for Rishit! Perfect record.
             </div>
           ) : (
-            <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-1.5 custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {penalties
                 .filter(p => p.user_id === rishitProfile?.id)
                 .map((pen) => {
@@ -234,45 +140,45 @@ export default function PenaltiesPage() {
                   return (
                     <div 
                       key={pen.id} 
-                      className={`border rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden transition-all ${
+                      className={`border-2 border-black rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden transition-all shadow-[2px_2px_0px_#000000] ${
                         isPending 
-                          ? 'bg-neon-red/5 border-neon-red/10' 
-                          : 'bg-white/5 border-white/5 opacity-50'
+                          ? 'bg-rose-100' 
+                          : 'bg-neo-gray opacity-60 shadow-none'
                       }`}
                     >
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start border-b border-black/10 pb-1">
                         <div className="flex items-center gap-2">
                           {getPenaltyIcon(pen.penalty_type)}
-                          <span className={`text-xs font-bold uppercase tracking-wider ${isPending ? 'text-neon-red' : 'text-white/40'}`}>
+                          <span className={`text-xs font-black uppercase tracking-wider ${isPending ? 'text-red-700' : 'text-black/50'}`}>
                             {pen.penalty_type.replace('_', ' ').toUpperCase()}
                           </span>
                         </div>
-                        <span className="text-[9px] font-mono text-white/30">{pen.date_incurred}</span>
+                        <span className="text-[9px] font-mono font-bold text-black/55">{pen.date_incurred}</span>
                       </div>
 
-                      <p className="text-xs font-semibold text-white/90">{pen.description}</p>
+                      <p className="text-xs font-bold text-black">{pen.description}</p>
                       
-                      <div className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between">
+                      <div className="mt-1 pt-2 border-t border-black/10 flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Required Fine</span>
-                          <span className="text-[11px] font-semibold text-white/70">{pen.penalty_value}</span>
+                          <span className="text-[8px] font-bold text-black/50 uppercase tracking-widest">Required Fine</span>
+                          <span className="text-[11px] font-extrabold text-black">{pen.penalty_value}</span>
                         </div>
 
                         {isPending ? (
                           <button
                             onClick={() => handleResolvePenalty(pen.id, pen.user_id)}
                             disabled={resolvingId === pen.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-neon-red/10 border border-neon-red/25 hover:bg-neon-red/20 text-neon-red text-[10px] font-bold tracking-wider font-orbitron transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border-2 border-black hover:bg-neo-yellow text-black text-[10px] font-black tracking-wider font-orbitron transition-all shadow-[1.5px_1.5px_0px_#000000] active:translate-y-[1px] active:shadow-none cursor-pointer"
                           >
                             {resolvingId === pen.id ? (
-                              <RefreshCw size={11} className="animate-spin" />
+                              <RefreshCw size={11} className="animate-spin text-black" />
                             ) : (
-                              <CheckCircle size={11} />
+                              <CheckCircle size={11} className="text-black" />
                             )}
                             <span>RESOLVE</span>
                           </button>
                         ) : (
-                          <span className="flex items-center gap-1 text-neon-green text-[10px] font-bold font-orbitron tracking-wider">
+                          <span className="flex items-center gap-1 text-neo-green text-[10px] font-extrabold font-orbitron tracking-wider">
                             <CheckCircle size={11} />
                             CLEARED
                           </span>
@@ -285,7 +191,6 @@ export default function PenaltiesPage() {
           )}
         </div>
       </section>
-
     </div>
   );
 }

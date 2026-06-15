@@ -1,16 +1,16 @@
--- Setup Schema for Placement Accountability Dashboard (Rishit & Rohit)
+-- Setup Schema for Placement Accountability Dashboard (Rishit Only)
 -- Execute this SQL code in your Supabase SQL Editor.
 
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- 1. Profiles (Rishit & Rohit)
+-- 1. Profiles (Rishit Only)
 create table if not exists public.profiles (
   id uuid primary key default uuid_generate_v4(),
-  username text unique not null, -- 'rohit' or 'rishit'
-  display_name text not null,    -- 'Rohit' or 'Rishit'
+  username text unique not null, -- 'rishit'
+  display_name text not null,    -- 'Rishit'
   avatar_url text,
-  color_accent text not null,    -- 'yellow' or 'blue'
+  color_accent text not null,    -- 'blue'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -22,7 +22,7 @@ create table if not exists public.tasks (
   end_time text,                 -- e.g. "12:00 PM"
   category text not null,        -- 'DSA', 'Aptitude', 'CS Fundamentals', 'Projects', 'Gym', 'Personal'
   date date default current_date not null,
-  assign_to text default 'both' not null, -- 'both' | 'rohit' | 'rishit'
+  assign_to text default 'rishit' not null, -- 'rishit'
   created_by uuid references public.profiles(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -127,7 +127,6 @@ alter publication supabase_realtime add table public.weekly_reports;
 -- Seed Initial Profiles
 insert into public.profiles (id, username, display_name, color_accent) 
 values 
-  ('11111111-1111-1111-1111-111111111111', 'rohit', 'Rohit', 'yellow'),
   ('22222222-2222-2222-2222-222222222222', 'rishit', 'Rishit', 'blue')
 on conflict (username) do update 
 set display_name = excluded.display_name, color_accent = excluded.color_accent;
@@ -135,16 +134,50 @@ set display_name = excluded.display_name, color_accent = excluded.color_accent;
 -- Seed Initial Streaks
 insert into public.streaks (user_id, current_streak, longest_streak, weekly_consistency)
 values
-  ('11111111-1111-1111-1111-111111111111', 0, 0, 0.0),
   ('22222222-2222-2222-2222-222222222222', 0, 0, 0.0)
 on conflict (user_id) do nothing;
 
 -- Seed Initial Placement Tracker
 insert into public.placement_progress (user_id, current_topic, topics_completed, upcoming_topics, interview_prep_progress)
 values
-  ('11111111-1111-1111-1111-111111111111', 'Arrays & Hashing', '{}'::text[], '{"Arrays & Hashing", "Two Pointers", "Sliding Window", "Stack", "Binary Search", "Linked List", "Trees", "Tries", "Heaps / Priority Queue", "Backtracking", "Graphs", "Advanced Graphs", "1-D Dynamic Programming", "2-D Dynamic Programming", "Greedy Algorithms", "Intervals", "Bit Manipulation", "Math & Geometry", "System Design", "Object Oriented Programming", "SQL & Databases"}'::text[], 0),
   ('22222222-2222-2222-2222-222222222222', 'Arrays & Hashing', '{}'::text[], '{"Arrays & Hashing", "Two Pointers", "Sliding Window", "Stack", "Binary Search", "Linked List", "Trees", "Tries", "Heaps / Priority Queue", "Backtracking", "Graphs", "Advanced Graphs", "1-D Dynamic Programming", "2-D Dynamic Programming", "Greedy Algorithms", "Intervals", "Bit Manipulation", "Math & Geometry", "System Design", "Object Oriented Programming", "SQL & Databases"}'::text[], 0)
 on conflict (user_id) do nothing;
+
+-- 10. Wellness Logs Table
+create table if not exists public.wellness_logs (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  date date default current_date not null,
+  sleep_hours numeric default 0.0 not null,
+  sleep_quality integer default 5 not null, -- 1-10
+  water_intake numeric default 0.0 not null, -- Liters
+  workout_done boolean default false not null,
+  meditation_minutes integer default 0 not null,
+  mood_rating integer default 5 not null, -- 1-10
+  screen_time_hours numeric default 0.0 not null,
+  productivity_score integer default 5 not null, -- 1-10
+  distractions text[] default '{}'::text[] not null,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, date)
+);
+
+-- 11. Goals Table
+create table if not exists public.goals (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  title text not null,
+  description text,
+  timeframe text default 'current' not null, -- 'current' | 'future'
+  category text default 'DSA' not null, -- 'DSA' | 'Wellness' | 'Career' | 'Personal'
+  status text default 'todo' not null, -- 'todo' | 'in_progress' | 'completed'
+  target_date date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable Realtime for wellness_logs and goals
+alter publication supabase_realtime add table public.wellness_logs;
+alter publication supabase_realtime add table public.goals;
 
 -- DISABLE ROW LEVEL SECURITY (RLS) FOR ALL TABLES
 -- This ensures that anonymous frontend client calls are not blocked by default RLS policies.
@@ -157,3 +190,5 @@ alter table public.streaks disable row level security;
 alter table public.penalties disable row level security;
 alter table public.activities disable row level security;
 alter table public.weekly_reports disable row level security;
+alter table public.wellness_logs disable row level security;
+alter table public.goals disable row level security;

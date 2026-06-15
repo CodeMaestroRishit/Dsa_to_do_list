@@ -33,7 +33,16 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (isSb) {
           try {
             // Verify Supabase connection and table access (checking if RLS or schema is broken)
-            const { error } = await (dbService as any).supabase.from('profiles').select('id').limit(1);
+            const dbServiceWithSupabase = dbService as unknown as {
+              supabase: {
+                from: (table: string) => {
+                  select: (fields: string) => {
+                    limit: (l: number) => Promise<{ error: unknown }>;
+                  };
+                };
+              };
+            };
+            const { error } = await dbServiceWithSupabase.supabase.from('profiles').select('id').limit(1);
             if (error) throw error;
           } catch (err) {
             console.warn("Supabase connection check failed. Falling back to LocalStorage:", err);
@@ -45,9 +54,9 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const fetchedProfiles = await dbService.getProfiles();
         setProfiles(fetchedProfiles);
         
-        // Load active user from localStorage or default to Rohit
+        // Load active user from localStorage or default to Rishit
         const storedActiveId = localStorage.getItem('pd_active_user_id');
-        const defaultUser = fetchedProfiles.find(p => p.username === 'rohit') || fetchedProfiles[0] || MOCK_PROFILES[0];
+        const defaultUser = fetchedProfiles.find(p => p.username === 'rishit') || fetchedProfiles[0] || MOCK_PROFILES[0];
         
         if (storedActiveId) {
           const matched = fetchedProfiles.find(p => p.id === storedActiveId);
@@ -81,7 +90,17 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Listen to remote changes in Supabase and trigger automatic real-time updates
   useEffect(() => {
     if (dbMode === 'supabase' && dbService.isSupabase()) {
-      const sbClient = (dbService as any).supabase;
+      const dbServiceWithSupabase = dbService as unknown as {
+        supabase: {
+          channel: (name: string) => {
+            on: (event: string, filter: Record<string, string>, callback: () => void) => {
+              subscribe: () => unknown;
+            };
+          };
+          removeChannel: (channel: unknown) => void;
+        };
+      };
+      const sbClient = dbServiceWithSupabase.supabase;
       if (sbClient) {
         const channel = sbClient
           .channel('schema-db-changes')

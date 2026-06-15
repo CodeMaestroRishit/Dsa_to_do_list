@@ -19,9 +19,6 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
   completions,
   sessions,
 }) => {
-  const isRohit = username === 'rohit';
-  const themeColor = isRohit ? 'bg-neon-yellow' : 'bg-neon-blue';
-  
   // Grid settings: 16 weeks (112 days)
   const WEEKS_COUNT = 16;
   const DAYS_COUNT = WEEKS_COUNT * 7;
@@ -84,7 +81,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
     }
 
     return dataList;
-  }, [userId, username, tasks, completions, sessions]);
+  }, [userId, username, tasks, completions, sessions, DAYS_COUNT]);
 
   // Group days into columns (weeks)
   const columns = useMemo(() => {
@@ -119,54 +116,45 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
     return cols.slice(-WEEKS_COUNT); // Return exact weeks count
   }, [gridData]);
 
-  // Color mapper depending on level and user
+  // Color mapper depending on level
   const getCellColorClass = (level: number, isSunday: boolean) => {
     if (level === 0) {
       return isSunday 
-        ? 'bg-red-500/10 border border-red-500/10 hover:border-red-500/30' 
-        : 'bg-white/5 border border-white/5 hover:border-white/15';
+        ? 'bg-rose-100 border border-black/35 hover:border-black' 
+        : 'bg-white border border-black/20 hover:border-black';
     }
 
-    if (isRohit) {
-      switch (level) {
-        case 1: return 'bg-neon-yellow/20 border border-neon-yellow/30 shadow-[0_0_4px_rgba(223,254,0,0.1)]';
-        case 2: return 'bg-neon-yellow/45 border border-neon-yellow/60 shadow-[0_0_6px_rgba(223,254,0,0.2)]';
-        case 3: return 'bg-neon-yellow/75 border border-neon-yellow/80 shadow-[0_0_8px_rgba(223,254,0,0.35)]';
-        case 4: return 'bg-neon-yellow border border-white shadow-[0_0_12px_#dffe00]';
-        default: return 'bg-white/5';
-      }
-    } else {
-      switch (level) {
-        case 1: return 'bg-neon-blue/20 border border-neon-blue/30 shadow-[0_0_4px_rgba(0,240,255,0.1)]';
-        case 2: return 'bg-neon-blue/45 border border-neon-blue/60 shadow-[0_0_6px_rgba(0,240,255,0.2)]';
-        case 3: return 'bg-neon-blue/75 border border-neon-blue/80 shadow-[0_0_8px_rgba(0,240,255,0.35)]';
-        case 4: return 'bg-neon-blue border border-white shadow-[0_0_12px_#00f0ff]';
-        default: return 'bg-white/5';
-      }
+    switch (level) {
+      case 1: return 'bg-neo-purple border border-black shadow-[1px_1px_0px_#000000]';
+      case 2: return 'bg-neo-blue border border-black shadow-[1px_1px_0px_#000000]';
+      case 3: return 'bg-neo-yellow border border-black shadow-[1px_1px_0px_#000000]';
+      case 4: return 'bg-neo-green border border-black shadow-[1.5px_1.5px_0px_#000000]';
+      default: return 'bg-white border border-black/25';
     }
   };
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="w-full bg-[#070707] border border-white/5 p-4 rounded-xl glass-card">
+    <div className="w-full bg-white p-4 rounded-xl glass-card">
       <div className="flex justify-between items-center mb-3">
-        <h4 className="font-orbitron font-bold text-xs uppercase text-white/70 tracking-wider">
-          {username.toUpperCase()}'S HEATMAP CONSISTENCY
+        <h4 className="font-orbitron font-bold text-xs uppercase text-black tracking-wider">
+          {username.toUpperCase()}&apos;S HEATMAP CONSISTENCY
         </h4>
-        <div className="flex items-center gap-1.5 text-[9px] font-bold text-white/40">
+        <div className="flex items-center gap-1.5 text-[9px] font-bold text-black/60">
           <span>Less</span>
-          <div className="w-2.5 h-2.5 rounded bg-white/5 border border-white/5" />
-          <div className={`w-2.5 h-2.5 rounded ${isRohit ? 'bg-neon-yellow/30' : 'bg-neon-blue/30'}`} />
-          <div className={`w-2.5 h-2.5 rounded ${isRohit ? 'bg-neon-yellow/60' : 'bg-neon-blue/60'}`} />
-          <div className={`w-2.5 h-2.5 rounded ${isRohit ? 'bg-neon-yellow' : 'bg-neon-blue'}`} />
+          <div className="w-2.5 h-2.5 rounded-sm bg-white border border-black/25" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-neo-purple border border-black" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-neo-blue border border-black" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-neo-yellow border border-black" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-neo-green border border-black" />
           <span>More</span>
         </div>
       </div>
 
       <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide py-1">
         {/* Row labels */}
-        <div className="grid grid-rows-7 gap-1 text-[9px] font-bold font-mono text-white/30 text-center select-none pt-0.5">
+        <div className="grid grid-rows-7 gap-1 text-[9px] font-bold font-mono text-black/50 text-center select-none pt-0.5">
           {dayLabels.map((lbl, idx) => (
             <div key={idx} className="w-3.5 h-3.5 flex items-center justify-center">
               {idx % 2 === 0 ? lbl : ''}
@@ -199,7 +187,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
           ))}
         </div>
       </div>
-      <div className="flex justify-between mt-2 pt-2 border-t border-white/5 text-[9px] font-mono text-white/30 tracking-wide uppercase">
+      <div className="flex justify-between mt-2 pt-2 border-t border-black/15 text-[9px] font-mono text-black/55 tracking-wide uppercase font-bold">
         <span>← 16 Weeks Ago</span>
         <span>Today</span>
       </div>
